@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  stashproxy:
+    build: .
+    container_name: stashproxy
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      # Mount your stash-groups folder (read-only — proxy only reads chapter-metadata.xml)
+      - /mnt/media/stash-groups:/stash-groups:ro
+    environment:
+      - STASH_GROUPS_PATH=/stash-groups
+      - STASH_API_KEY=        # Set this if Stash requires authentication
+      - PROXY_PORT=5678
