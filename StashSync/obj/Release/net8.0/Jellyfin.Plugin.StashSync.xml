@@ -77,6 +77,13 @@
             Gets or sets a value indicating whether to include Groups that have no cover image.
             </summary>
         </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.ProxyUrl">
+            <summary>
+            Gets or sets the base URL of the StashProxy service (e.g. http://192.168.0.38:5678).
+            When set, .strm files will point to the proxy which streams all scenes concatenated.
+            Leave empty to use direct Stash stream URLs (single scene only).
+            </summary>
+        </member>
         <member name="T:Jellyfin.Plugin.StashSync.PluginServiceRegistrator">
             <summary>
             Registers all StashSync services with Jellyfin's DI container.
@@ -184,6 +191,12 @@
         <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.CleanupOrphanedGroups(System.Collections.Generic.IEnumerable{Jellyfin.Plugin.StashSync.GraphQL.StashGroup},Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration)">
             <summary>
             Removes folders for groups that no longer exist in Stash.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.WriteM3U8Playlist(System.Collections.Generic.List{System.ValueTuple{Jellyfin.Plugin.StashSync.GraphQL.StashScene,System.String}},System.String)">
+            <summary>
+            Writes an M3U8 playlist file listing all scene stream URLs in order.
+            Jellyfin reads this and plays each scene sequentially.
             </summary>
         </member>
         <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.FetchTmdbImagesAsync(System.String,System.String,System.Threading.CancellationToken)">
