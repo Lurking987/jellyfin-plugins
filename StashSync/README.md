@@ -1,4 +1,4 @@
-# Jellyfin.Plugin.StashSync
+# StashSync Groups Jellyfin Plugin
 
 A Jellyfin plugin that syncs your [Stash App](https://stashapp.cc) Groups to Jellyfin as Movies, with scenes mapped as chapter markers and full TheMovieDB metadata support.
 
