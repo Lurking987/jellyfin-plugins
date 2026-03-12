@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Jellyfin.Plugin.StashSync</AssemblyName>
+    <RootNamespace>Jellyfin.Plugin.StashSync</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Nullable>enable</Nullable>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <Version>1.0.0</Version>
+    <NoWarn>CA1056;CA1002;CA2227;CA1848;CA1305;CA1307;CA1031;CA1822;CA1062;CA2234;CA1724</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Jellyfin.Model" Version="10.9.0" />
+    <PackageReference Include="Jellyfin.Controller" Version="10.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="configPage.html">
+      <LogicalName>Jellyfin.Plugin.StashSync.Configuration.configPage.html</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

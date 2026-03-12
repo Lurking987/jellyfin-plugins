@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>StashSync Configuration</title>
+</head>
+<body>
+<div id="StashSyncConfigPage" data-role="page" class="page type-interior pluginConfigurationPage"
+     data-require="emby-input,emby-button,emby-select,emby-checkbox">
+
+    <div data-role="content">
+        <div class="content-primary">
+
+            <form id="StashSyncConfigForm">
+
+                <div class="sectionTitleContainer flex align-items-center">
+                    <h2 class="sectionTitle">StashSync Settings</h2>
+                </div>
+
+                <p>StashSync maps your <strong>Stash App Groups</strong> to Jellyfin Movies.
+                Each Group becomes a Movie entry, with its scenes represented as chapters.
+                After saving settings, run the <em>"Sync Stash Groups"</em> task from the
+                Scheduled Tasks page.</p>
+
+                <hr/>
+                <h3>Stash Connection</h3>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="StashUrl">Stash URL</label>
+                    <input id="StashUrl" name="StashUrl" type="text" is="emby-input"
+                           placeholder="http://192.168.1.100:9999"/>
+                    <div class="fieldDescription">
+                        Base URL of your Stash instance. Do not include a trailing slash.
+                    </div>
+                </div>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="StashApiKey">Stash API Key</label>
+                    <input id="StashApiKey" name="StashApiKey" type="password" is="emby-input"
+                           placeholder="Leave blank if Stash has no authentication"/>
+                    <div class="fieldDescription">
+                        Found in Stash → Settings → Security → API Key.
+                    </div>
+                </div>
+
+                <hr/>
+                <h3>TMDB Integration</h3>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="TmdbApiKey">TMDB API Key (v3)</label>
+                    <input id="TmdbApiKey" name="TmdbApiKey" type="password" is="emby-input"
+                           placeholder="Your TMDB v3 API key"/>
+                    <div class="fieldDescription">
+                        Used to fetch poster and backdrop images directly from TheMovieDB during sync.
+                        Free to obtain at <a href="https://www.themoviedb.org/settings/api" target="_blank">themoviedb.org/settings/api</a>.
+                        If left blank, posters will fall back to the Stash cover image only.
+                    </div>
+                </div>
+
+                <hr/>
+                <h3>Output</h3>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="StrmOutputPath">STRM Output Path</label>
+                    <input id="StrmOutputPath" name="StrmOutputPath" type="text" is="emby-input"
+                           placeholder="/media/stash-groups"/>
+                    <div class="fieldDescription">
+                        Directory where .strm files will be created. Add this path to Jellyfin as a
+                        <strong>Movies</strong> library. Jellyfin must have read/write access to this path.
+                    </div>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="UseStreamUrls" name="UseStreamUrls" type="checkbox" is="emby-checkbox"/>
+                        <span>Use Stash Stream URLs (recommended)</span>
+                    </label>
+                    <div class="fieldDescription checkboxFieldDescription">
+                        When enabled, .strm files will contain Stash HTTP stream URLs.
+                        When disabled, local file paths from Stash will be used (requires shared filesystem).
+                    </div>
+                </div>
+
+                <hr/>
+                <h3>Filters</h3>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="MinSceneCount">Minimum Scene Count</label>
+                    <input id="MinSceneCount" name="MinSceneCount" type="number" is="emby-input"
+                           min="1" max="100" placeholder="1"/>
+                    <div class="fieldDescription">
+                        Groups with fewer scenes than this number will be skipped.
+                    </div>
+                </div>
+
+                <div class="checkboxContainer checkboxContainer-withDescription">
+                    <label class="emby-checkbox-label">
+                        <input id="IncludeGroupsWithoutCover" name="IncludeGroupsWithoutCover"
+                               type="checkbox" is="emby-checkbox"/>
+                        <span>Include Groups without a cover image</span>
+                    </label>
+                </div>
+
+                <br/>
+                <div>
+                    <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                        <span>Save</span>
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var StashSyncConfig = {
+            pluginUniqueId: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
+        };
+
+        document.querySelector('#StashSyncConfigPage').addEventListener('pageshow', function () {
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(StashSyncConfig.pluginUniqueId).then(function (config) {
+                document.querySelector('#StashUrl').value = config.StashUrl || '';
+                document.querySelector('#StashApiKey').value = config.StashApiKey || '';
+                document.querySelector('#TmdbApiKey').value = config.TmdbApiKey || '';
+                document.querySelector('#StrmOutputPath').value = config.StrmOutputPath || '';
+                document.querySelector('#UseStreamUrls').checked = config.UseStreamUrls !== false;
+                document.querySelector('#MinSceneCount').value = config.MinSceneCount || 1;
+                document.querySelector('#IncludeGroupsWithoutCover').checked = config.IncludeGroupsWithoutCover !== false;
+                Dashboard.hideLoadingMsg();
+            });
+        });
+
+        document.querySelector('#StashSyncConfigForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            Dashboard.showLoadingMsg();
+            ApiClient.getPluginConfiguration(StashSyncConfig.pluginUniqueId).then(function (config) {
+                config.StashUrl = document.querySelector('#StashUrl').value.trim().replace(/\/$/, '');
+                config.StashApiKey = document.querySelector('#StashApiKey').value;
+                config.TmdbApiKey = document.querySelector('#TmdbApiKey').value.trim();
+                config.StrmOutputPath = document.querySelector('#StrmOutputPath').value.trim();
+                config.UseStreamUrls = document.querySelector('#UseStreamUrls').checked;
+                config.MinSceneCount = parseInt(document.querySelector('#MinSceneCount').value, 10) || 1;
+                config.IncludeGroupsWithoutCover = document.querySelector('#IncludeGroupsWithoutCover').checked;
+
+                ApiClient.updatePluginConfiguration(StashSyncConfig.pluginUniqueId, config).then(function () {
+                    Dashboard.processPluginConfigurationUpdateResult();
+                });
+            });
+        });
+    </script>
+
+</div>
+</body>
+</html>

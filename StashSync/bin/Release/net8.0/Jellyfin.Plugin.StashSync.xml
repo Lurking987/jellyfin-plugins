@@ -1,0 +1,235 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Jellyfin.Plugin.StashSync</name>
+    </assembly>
+    <members>
+        <member name="T:Jellyfin.Plugin.StashSync.Plugin">
+            <summary>
+            StashSync plugin for Jellyfin.
+            Maps Stash App Groups → Jellyfin Movies via .strm files.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Plugin.#ctor(MediaBrowser.Common.Configuration.IApplicationPaths,MediaBrowser.Model.Serialization.IXmlSerializer)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Jellyfin.Plugin.StashSync.Plugin"/> class.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Plugin.Name">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Plugin.Id">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Plugin.Description">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Plugin.Instance">
+            <summary>
+            Gets the current plugin instance.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Plugin.GetPages">
+            <inheritdoc />
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration">
+            <summary>
+            Plugin configuration for StashSync.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.StashUrl">
+            <summary>
+            Gets or sets the base URL of the Stash instance (e.g. http://192.168.1.100:9999).
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.StashApiKey">
+            <summary>
+            Gets or sets the Stash API key (if authentication is enabled in Stash).
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.TmdbApiKey">
+            <summary>
+            Gets or sets the TMDB API key (v3 auth) used to fetch poster URLs.
+            Free to obtain at https://www.themoviedb.org/settings/api
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.StrmOutputPath">
+            <summary>
+            Gets or sets the local filesystem path where .strm files will be written.
+            Jellyfin must have this path added as a Movie library.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.UseStreamUrls">
+            <summary>
+            Gets or sets a value indicating whether to use Stash stream URLs (true)
+            or local file paths (false) inside the .strm files.
+            Stream URLs are more network-friendly for cross-machine setups.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.MinSceneCount">
+            <summary>
+            Gets or sets the minimum number of scenes required for a Group to be synced.
+            Groups with fewer scenes than this will be skipped.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration.IncludeGroupsWithoutCover">
+            <summary>
+            Gets or sets a value indicating whether to include Groups that have no cover image.
+            </summary>
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.PluginServiceRegistrator">
+            <summary>
+            Registers all StashSync services with Jellyfin's DI container.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.PluginServiceRegistrator.RegisterServices(Microsoft.Extensions.DependencyInjection.IServiceCollection,MediaBrowser.Controller.IServerApplicationHost)">
+            <inheritdoc />
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.GraphQL.StashApiClient">
+            <summary>
+            Lightweight GraphQL client for the Stash API.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.GraphQL.StashApiClient.GetAllGroupsAsync(Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration,System.Threading.CancellationToken)">
+            <summary>
+            Fetches all Groups from Stash, page by page.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.GraphQL.StashApiClient.TestConnectionAsync(Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration,System.Threading.CancellationToken)">
+            <summary>
+            Tries to contact Stash and returns true if the connection succeeds.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.GraphQL.StashApiClient.EnrichSceneOrder(Jellyfin.Plugin.StashSync.GraphQL.StashGroup)">
+            <summary>
+            Reads the scene_index from the nested groups[].scene_index field and
+            stamps it onto each scene so we can sort correctly later.
+            </summary>
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.GraphQL.GraphQLRequest">
+            <summary>Raw GraphQL request envelope.</summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.GraphQL.StashScene.OrderIndex">
+            <summary>
+            Order index within the group (populated from GroupScene.scene_index).
+            </summary>
+        </member>
+        <member name="F:Jellyfin.Plugin.StashSync.GraphQL.StashQueries.FindGroupScenes">
+            <summary>Query to get a single group's scenes with their order index.</summary>
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.Providers.StashExternalId">
+            <summary>
+            Registers "Stash" as an external ID type in Jellyfin.
+            This allows the Group ID to be displayed and linked on the movie's detail page.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Providers.StashExternalId.ProviderName">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Providers.StashExternalId.Key">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Providers.StashExternalId.Type">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Providers.StashExternalId.UrlFormatString">
+            <inheritdoc />
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Providers.StashExternalId.Supports(MediaBrowser.Model.Entities.IHasProviderIds)">
+            <inheritdoc />
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider">
+            <summary>
+            Metadata provider for StashSync .strm movie entries.
+            Sets the Stash Group external ID so the movie links back to Stash.
+            Chapters are embedded directly in the .nfo file and handled by Jellyfin's built-in NFO reader.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider.#ctor(Microsoft.Extensions.Logging.ILogger{Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider})">
+            <summary>
+            Initializes a new instance of the <see cref="T:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider"/> class.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider.Name">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider.Order">
+            <inheritdoc />
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider.GetImages(MediaBrowser.Controller.Entities.BaseItem,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Providers.StashGroupMetadataProvider.GetMetadata(MediaBrowser.Controller.Providers.ItemInfo,MediaBrowser.Controller.Providers.IDirectoryService,System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.Tasks.StrmWriter">
+             <summary>
+             Writes .strm + .nfo sidecar pairs for each Stash Group.
+            
+             Output layout:
+               {StrmOutputPath}/
+                 {GroupName} (StashGroup-{id})/
+                   {GroupName}.strm          ← streams the FIRST scene (Jellyfin's anchor file)
+                   {GroupName}.nfo           ← movie metadata for Jellyfin
+                   chapter-metadata.xml      ← chapter list used by the metadata provider
+                   poster.jpg                ← cover art (TMDB preferred, Stash fallback)
+             </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.WriteGroupAsync(Jellyfin.Plugin.StashSync.GraphQL.StashGroup,Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration,System.Threading.CancellationToken)">
+            <summary>
+            Creates/updates the folder and files for a single Group.
+            Returns true if anything was written.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.CleanupOrphanedGroups(System.Collections.Generic.IEnumerable{Jellyfin.Plugin.StashSync.GraphQL.StashGroup},Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration)">
+            <summary>
+            Removes folders for groups that no longer exist in Stash.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.FetchTmdbImagesAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Calls the TMDB API to get poster and backdrop paths for a movie.
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.ExtractTmdbId(System.String)">
+            <summary>
+            Parses a TMDB movie ID from a URL like https://www.themoviedb.org/movie/12345
+            </summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.DownloadImageAsync(System.String,Jellyfin.Plugin.StashSync.Configuration.PluginConfiguration,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Downloads an image to disk. Pass null for config when the URL is already absolute (e.g. TMDB).
+            </summary>
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.TmdbImages">
+            <summary>Holds poster and backdrop paths returned from the TMDB API.</summary>
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.StrmWriter.TmdbImages.#ctor(System.String,System.String)">
+            <summary>Holds poster and backdrop paths returned from the TMDB API.</summary>
+        </member>
+        <member name="T:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask">
+            <summary>
+            Jellyfin scheduled task: "Sync Stash Groups".
+            Triggered manually from Administration → Scheduled Tasks.
+            </summary>
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask.Name">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask.Key">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask.Description">
+            <inheritdoc />
+        </member>
+        <member name="P:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask.Category">
+            <inheritdoc />
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask.GetDefaultTriggers">
+            <inheritdoc />
+        </member>
+        <member name="M:Jellyfin.Plugin.StashSync.Tasks.SyncStashGroupsTask.ExecuteAsync(System.IProgress{System.Double},System.Threading.CancellationToken)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>
