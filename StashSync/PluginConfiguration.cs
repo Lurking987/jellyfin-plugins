@@ -46,4 +46,11 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Gets or sets a value indicating whether to include Groups that have no cover image.
     /// </summary>
     public bool IncludeGroupsWithoutCover { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the base URL of the StashProxy service (e.g. http://192.168.0.38:5678).
+    /// When set, .strm files will point to the proxy which streams all scenes concatenated.
+    /// Leave empty to use direct Stash stream URLs (single scene only).
+    /// </summary>
+    public string ProxyUrl { get; set; } = string.Empty;
 }

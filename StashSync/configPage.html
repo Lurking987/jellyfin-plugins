@@ -82,6 +82,21 @@
                 </div>
 
                 <hr/>
+                <h3>StashProxy</h3>
+
+                <div class="inputContainer">
+                    <label class="inputLabel inputLabelUnfocused" for="ProxyUrl">Proxy URL</label>
+                    <input id="ProxyUrl" name="ProxyUrl" type="text" is="emby-input"
+                           placeholder="http://192.168.0.38:5678"/>
+                    <div class="fieldDescription">
+                        URL of the <strong>StashProxy</strong> service. When set, .strm files will point to the
+                        proxy which streams all scenes in a Group as one continuous video using FFmpeg.
+                        Leave blank to use direct Stash stream URLs (plays first scene only).
+                        See the <a href="https://github.com/Lurking987/jellyfin-plugins/tree/main/StashProxy" target="_blank">StashProxy README</a> for setup instructions.
+                    </div>
+                </div>
+
+                <hr/>
                 <h3>Filters</h3>
 
                 <div class="inputContainer">
@@ -128,6 +143,7 @@
                 document.querySelector('#UseStreamUrls').checked = config.UseStreamUrls !== false;
                 document.querySelector('#MinSceneCount').value = config.MinSceneCount || 1;
                 document.querySelector('#IncludeGroupsWithoutCover').checked = config.IncludeGroupsWithoutCover !== false;
+                document.querySelector('#ProxyUrl').value = config.ProxyUrl || '';
                 Dashboard.hideLoadingMsg();
             });
         });
@@ -143,6 +159,7 @@
                 config.UseStreamUrls = document.querySelector('#UseStreamUrls').checked;
                 config.MinSceneCount = parseInt(document.querySelector('#MinSceneCount').value, 10) || 1;
                 config.IncludeGroupsWithoutCover = document.querySelector('#IncludeGroupsWithoutCover').checked;
+                config.ProxyUrl = document.querySelector('#ProxyUrl').value.trim().replace(/\/$/, '');
 
                 ApiClient.updatePluginConfiguration(StashSyncConfig.pluginUniqueId, config).then(function () {
                     Dashboard.processPluginConfigurationUpdateResult();

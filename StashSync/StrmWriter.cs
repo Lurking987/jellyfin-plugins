@@ -67,17 +67,33 @@ public class StrmWriter
 
         Directory.CreateDirectory(folderPath);
 
-        // 1. Write the .strm anchor file (first scene stream URL or local path)
-        var strmPath = Path.Combine(folderPath, $"{safeName}.strm");
-        var streamTarget = ResolveStreamTarget(group.Scenes[0], config);
-        if (string.IsNullOrEmpty(streamTarget))
+        // Validate all scenes have resolvable stream targets before writing anything
+        var streamTargets = group.Scenes
+            .Select(s => (Scene: s, Url: ResolveStreamTarget(s, config)))
+            .ToList();
+
+        if (streamTargets.Any(t => string.IsNullOrEmpty(t.Url)))
         {
-            _logger.LogWarning("[StashSync] Group '{Name}' scene 0 has no resolvable stream — skipping", group.Name);
+            _logger.LogWarning("[StashSync] Group '{Name}' has scenes with no resolvable stream — skipping", group.Name);
             return false;
         }
-        await File.WriteAllTextAsync(strmPath, streamTarget, Encoding.UTF8, ct).ConfigureAwait(false);
 
-        // 2. Fetch TMDB images if we have a TMDB ID and API key
+        // 1. Write .strm — points to StashProxy if configured, otherwise first scene direct URL
+        var strmPath = Path.Combine(folderPath, $"{safeName}.strm");
+        string strmTarget;
+        if (!string.IsNullOrWhiteSpace(config.ProxyUrl))
+        {
+            // StashProxy streams all scenes concatenated via FFmpeg
+            strmTarget = $"{config.ProxyUrl.TrimEnd('/')}/group/{group.Id}/stream";
+        }
+        else
+        {
+            // Fallback: direct first-scene stream URL (single scene only)
+            strmTarget = streamTargets[0].Url;
+        }
+        await File.WriteAllTextAsync(strmPath, strmTarget, Encoding.UTF8, ct).ConfigureAwait(false);
+
+        // 3. Fetch TMDB images if we have a TMDB ID and API key
         var tmdbId = group.Urls.Select(ExtractTmdbId).FirstOrDefault(id => id != null);
         TmdbImages? tmdbImages = null;
         if (tmdbId != null && !string.IsNullOrWhiteSpace(config.TmdbApiKey))
@@ -85,15 +101,15 @@ public class StrmWriter
             tmdbImages = await FetchTmdbImagesAsync(tmdbId, config.TmdbApiKey, ct).ConfigureAwait(false);
         }
 
-        // 3. Write the NFO sidecar (Kodi/Jellyfin movie format)
+        // 4. Write the NFO sidecar (Kodi/Jellyfin movie format)
         var nfoPath = Path.Combine(folderPath, $"{safeName}.nfo");
         WriteNfo(group, tmdbId, tmdbImages, nfoPath);
 
-        // 4. Write chapter-metadata.xml (custom, read by our metadata provider)
+        // 5. Write chapter-metadata.xml (custom, read by our metadata provider)
         var chaptersPath = Path.Combine(folderPath, "chapter-metadata.xml");
         WriteChapterMetadata(group, config, chaptersPath);
 
-        // 5. Download poster — TMDB preferred, Stash cover as fallback
+        // 6. Download poster — TMDB preferred, Stash cover as fallback
         var posterPath = Path.Combine(folderPath, "poster.jpg");
         if (tmdbImages?.PosterPath != null)
         {
@@ -105,7 +121,7 @@ public class StrmWriter
             await DownloadImageAsync(group.FrontImagePath, config, posterPath, ct).ConfigureAwait(false);
         }
 
-        // 6. Download backdrop if available from TMDB
+        // 7. Download backdrop if available from TMDB
         if (tmdbImages?.BackdropPath != null)
         {
             var backdropPath = Path.Combine(folderPath, "backdrop.jpg");
@@ -151,6 +167,33 @@ public class StrmWriter
             return $"{config.StashUrl.TrimEnd('/')}/scene/{scene.Id}/stream";
 
         return scene.Files.FirstOrDefault()?.Path ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Writes an M3U8 playlist file listing all scene stream URLs in order.
+    /// Jellyfin reads this and plays each scene sequentially.
+    /// </summary>
+    private static void WriteM3U8Playlist(
+        List<(StashScene Scene, string Url)> scenes,
+        string playlistPath)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("#EXTM3U");
+
+        foreach (var (scene, url) in scenes)
+        {
+            var title = string.IsNullOrWhiteSpace(scene.Title)
+                ? $"Scene {scene.OrderIndex + 1}"
+                : scene.Title;
+
+            var duration = (int)(scene.Files.FirstOrDefault()?.Duration ?? -1);
+
+            // #EXTINF:<duration>,<title>
+            sb.AppendLine($"#EXTINF:{duration},{title}");
+            sb.AppendLine(url);
+        }
+
+        File.WriteAllText(playlistPath, sb.ToString(), Encoding.UTF8);
     }
 
     private void WriteNfo(StashGroup group, string? tmdbId, TmdbImages? tmdbImages, string nfoPath)
