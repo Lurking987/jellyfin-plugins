@@ -51,12 +51,14 @@ environment:
   - STASH_API_KEY=your_api_key_here
 ```
 
-### 2. Build and start the container
+### 2. Start the container
 
 ```bash
 cd StashProxy
 docker-compose up -d
 ```
+
+Docker will automatically pull the pre-built image from Docker Hub — no build step required.
 
 Verify it's running:
 ```bash
@@ -77,15 +79,13 @@ Re-run the sync task. The `.strm` files will now point to the proxy instead of S
 
 ## TrueNAS Scale Setup
 
-On TrueNAS Scale you can run StashProxy as a custom app:
-
 1. Go to **Apps → Discover Apps → Custom App**
-2. Set the image to build from this folder, or push it to a registry first
+2. Set the image to `lurking987/stashproxy:latest`
 3. Set the port mapping: `5678 → 5678`
 4. Set the volume mount: your stash-groups path → `/stash-groups` (read-only)
-5. Set environment variables as needed
+5. Set environment variables as needed (see table above)
 
-Alternatively, run it directly via SSH:
+Alternatively, run it via SSH:
 ```bash
 cd /path/to/StashProxy
 docker-compose up -d
