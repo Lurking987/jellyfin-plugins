@@ -13,16 +13,17 @@ Jellyfin → GET /group/42/stream
               ↓
          StashProxy reads chapter-metadata.xml
               ↓
-         FFmpeg fetches scene streams from Stash
-         and concatenates them on the fly
+         For each scene, spawns FFmpeg to remux MP4→MPEG-TS
+         with continuous timestamps (scene 2 picks up where scene 1 ended)
               ↓
          Single continuous video piped back to Jellyfin
 ```
 
 - No files written to disk
 - No re-encoding — FFmpeg stream-copies (fast, lossless)
-- Scenes play sequentially as one continuous video
-- Works with chapter markers already in the NFO
+- All scenes play as one continuous video with correct chapter offsets
+- Each scene gets its own FFmpeg process so output starts immediately
+- Timestamps are continuous across scenes so Jellyfin's scrubber shows the full duration
 
 ---
 
@@ -83,7 +84,7 @@ Re-run the sync task. The `.strm` files will now point to the proxy instead of S
 2. Set the image to `lurking987/stashproxy:latest`
 3. Set the port mapping: `5678 → 5678`
 4. Set the volume mount: your stash-groups path → `/stash-groups` (read-only)
-5. Set environment variables as needed (see table above)
+5. Set environment variables as needed (see table below)
 
 Alternatively, run it via SSH:
 ```bash
@@ -119,16 +120,26 @@ The `group_id` matches the Stash Group ID, which is embedded in the folder name 
 
 ---
 
+## Seeking
+
+Seeking works within the buffered portion of the video. As Jellyfin buffers more of the stream, the seekable range grows. Full random-access seeking is not supported since the stream is a live pipe — you cannot jump ahead of what has already been buffered.
+
+---
+
 ## Troubleshooting
 
 **Proxy returns 404 for a group**
-- Make sure the stash-groups volume is mounted correctly
+- Make sure the stash-groups volume is mounted correctly to `/stash-groups` inside the container
 - Confirm the `chapter-metadata.xml` file exists in the group folder
 - Re-run the StashSync sync task to regenerate chapter files
 
-**Video plays but cuts off early**
-- Check that FFmpeg can reach the Stash stream URLs from inside the container
+**Video plays but stops after the first scene**
+- Check proxy logs: `docker logs <container-name> --tail 50`
+- Confirm FFmpeg can reach the Stash stream URLs from inside the container
 - If Stash requires auth, make sure `STASH_API_KEY` is set
+
+**ffprobe / Jellyfin reports "invalid data"**
+- This usually means the container image is stale — pull the latest: `docker pull lurking987/stashproxy:latest` and redeploy
 
 **Container won't start**
 - Check logs: `docker-compose logs stashproxy`
