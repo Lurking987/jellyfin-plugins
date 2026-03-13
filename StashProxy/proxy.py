@@ -86,7 +86,7 @@ def build_ffmpeg_concat_command(stream_urls: list[str]) -> list[str]:
         "-map", "[outa]",
         "-c:v", "copy",
         "-c:a", "copy",
-        "-f", "matroska",   # MKV container — robust for streaming
+        "-f", "mpegts",     # MPEG-TS — designed for streaming, no seeking required
         "pipe:1",           # output to stdout
     ]
 
@@ -156,7 +156,7 @@ class ProxyHandler(BaseHTTPRequestHandler):
             return
 
         self.send_response(200)
-        self.send_header("Content-Type", "video/x-matroska")
+        self.send_header("Content-Type", "video/mp2t")
         self.send_header("Transfer-Encoding", "chunked")
         self.end_headers()
 
