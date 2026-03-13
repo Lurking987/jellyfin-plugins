@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Secondary\\Downloads\\StashSync - Jellyfin Plugin\\Jellyfin.Plugin.StashSync.csproj": {}
+    "C:\\Users\\Secondary\\Downloads\\jellyfin-plugins\\StashSync\\Jellyfin.Plugin.StashSync.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Secondary\\Downloads\\StashSync - Jellyfin Plugin\\Jellyfin.Plugin.StashSync.csproj": {
+    "C:\\Users\\Secondary\\Downloads\\jellyfin-plugins\\StashSync\\Jellyfin.Plugin.StashSync.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Secondary\\Downloads\\StashSync - Jellyfin Plugin\\Jellyfin.Plugin.StashSync.csproj",
+        "projectUniqueName": "C:\\Users\\Secondary\\Downloads\\jellyfin-plugins\\StashSync\\Jellyfin.Plugin.StashSync.csproj",
         "projectName": "Jellyfin.Plugin.StashSync",
-        "projectPath": "C:\\Users\\Secondary\\Downloads\\StashSync - Jellyfin Plugin\\Jellyfin.Plugin.StashSync.csproj",
+        "projectPath": "C:\\Users\\Secondary\\Downloads\\jellyfin-plugins\\StashSync\\Jellyfin.Plugin.StashSync.csproj",
         "packagesPath": "C:\\Users\\Secondary\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Secondary\\Downloads\\StashSync - Jellyfin Plugin\\obj\\",
+        "outputPath": "C:\\Users\\Secondary\\Downloads\\jellyfin-plugins\\StashSync\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Secondary\\AppData\\Roaming\\NuGet\\NuGet.Config"
