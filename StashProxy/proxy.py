@@ -60,37 +60,32 @@ def parse_chapter_metadata(folder: str) -> list[dict]:
     return sorted(chapters, key=lambda c: c["index"])
 
 
-def build_ffmpeg_concat_command(stream_urls: list[str]) -> list[str]:
+def build_ffmpeg_concat_command(stream_urls: list[str], tmp_playlist_path: str) -> list[str]:
     """
     Build an FFmpeg command that concatenates multiple HTTP stream URLs
-    and outputs to stdout as MKV (copy, no re-encoding).
+    using the concat demuxer with stream copy (no re-encoding).
     """
-    cmd = [FFMPEG_PATH, "-y"]
-
-    # Add each stream URL as an input
+    lines = ["ffconcat version 1.0"]
     for url in stream_urls:
         if STASH_API_KEY:
             separator = "&" if "?" in url else "?"
             url = f"{url}{separator}apikey={STASH_API_KEY}"
-        cmd += ["-i", url]
+        lines.append(f"file '{url}'")
 
-    # Build the filter_complex concat string
-    n = len(stream_urls)
-    # Use concat filter: [0:v][0:a][1:v][1:a]...concat=n=N:v=1:a=1
-    inputs = "".join(f"[{i}:v][{i}:a]" for i in range(n))
-    filter_complex = f"{inputs}concat=n={n}:v=1:a=1[outv][outa]"
+    with open(tmp_playlist_path, "w") as f:
+        f.write("\n".join(lines))
 
-    cmd += [
-        "-filter_complex", filter_complex,
-        "-map", "[outv]",
-        "-map", "[outa]",
-        "-c:v", "copy",
-        "-c:a", "copy",
-        "-f", "mpegts",     # MPEG-TS — designed for streaming, no seeking required
-        "pipe:1",           # output to stdout
+    return [
+        FFMPEG_PATH, "-y",
+        "-protocol_whitelist", "file,http,https,tcp,tls",
+        "-f", "concat",
+        "-safe", "0",
+        "-i", tmp_playlist_path,
+        "-c", "copy",
+        "-f", "mpegts",
+        "pipe:1",
     ]
 
-    return cmd
 
 
 class ProxyHandler(BaseHTTPRequestHandler):
@@ -139,7 +134,13 @@ class ProxyHandler(BaseHTTPRequestHandler):
         print(f"[StashProxy] Streaming group {group_id} — {len(stream_urls)} scene(s)")
 
         # Build and run FFmpeg
-        cmd = build_ffmpeg_concat_command(stream_urls)
+        import tempfile, os
+        tmp_playlist = tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False, prefix=f"stashproxy_{group_id}_"
+        )
+        tmp_playlist.close()
+        tmp_playlist_path = tmp_playlist.name
+        cmd = build_ffmpeg_concat_command(stream_urls, tmp_playlist_path)
         print(f"[StashProxy] FFmpeg cmd: {' '.join(cmd)}")
 
         try:
@@ -169,12 +170,16 @@ class ProxyHandler(BaseHTTPRequestHandler):
                 self.wfile.write(chunk)
             process.wait()
         except (BrokenPipeError, ConnectionResetError):
-            # Client disconnected — kill FFmpeg
             print(f"[StashProxy] Client disconnected for group {group_id}, killing FFmpeg")
             process.kill()
         except Exception as e:
             print(f"[StashProxy] Stream error for group {group_id}: {e}")
             process.kill()
+        finally:
+            try:
+                os.unlink(tmp_playlist_path)
+            except Exception:
+                pass
 
 
 def main():
