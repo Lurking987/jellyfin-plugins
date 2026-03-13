@@ -56,7 +56,7 @@ Jellyfin Movie: "My Movie Title"
 5. Confirm it loaded: **Dashboard → Plugins → My Plugins** → StashSync should appear
 
 > **TrueNAS Scale:** The plugin folder is typically at
-> `/mnt/<pool>/ix-applications/releases/jellyfin/volumes/ix-volumes/config/plugins/StashSync_1.0.0.0/`
+> `/mnt/.ix-apps/app_mounts/jellyfin/config/plugins/StashSync_1.0.0.0/`
 
 ### Build from source
 
@@ -104,7 +104,15 @@ chmod g+s /mnt/<pool>/path/to/stash-groups   # inherit group on new files
 
 The `g+s` setgid flag is important — without it, newly created subfolders won't inherit the correct ownership and Jellyfin will hit permission errors on subsequent syncs.
 
-### 4. Run the sync
+### 4. Deploy StashProxy
+
+Multi-scene groups require [StashProxy](../StashProxy) to stream correctly. Without it, only single-scene groups will play. See the [StashProxy README](../StashProxy/README.md) for setup instructions.
+
+Once StashProxy is running, set the **Proxy URL** in the plugin settings to `http://<your-server-ip>:5678`, then re-run the sync.
+
+---
+
+### 5. Run the sync
 
 1. **Dashboard → Scheduled Tasks → StashSync → Sync Stash Groups → ▶ Run**
 2. Once complete, **Scan Library Files** on your stash-groups library
