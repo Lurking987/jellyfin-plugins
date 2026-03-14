@@ -27,54 +27,55 @@ Jellyfin → GET /group/42/stream
 
 ---
 
-## Requirements
+## Quick Start (Docker Compose)
 
-- Docker and Docker Compose
-- FFmpeg (included in the Docker image)
-- StashSync plugin installed and synced at least once
-
----
-
-## Setup
-
-### 1. Update docker-compose.yml
-
-Edit `docker-compose.yml` and set the volume path to match your stash-groups folder:
+No need to clone the repo. Just create a `docker-compose.yml` file anywhere on your server with the following content:
 
 ```yaml
-volumes:
-  - /your/actual/path/to/stash-groups:/stash-groups:ro
+version: "3.8"
+
+services:
+  stashproxy:
+    image: lurking987/stashproxy:latest
+    container_name: stashproxy
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    volumes:
+      # Change this to the path of your stash-groups folder on the host
+      - /your/path/to/stash-groups:/stash-groups:ro
+    environment:
+      - STASH_GROUPS_PATH=/stash-groups
+      - STASH_API_KEY=        # Set this if Stash requires authentication
+      - PROXY_PORT=5678
 ```
 
-If Stash requires an API key, set it:
-```yaml
-environment:
-  - STASH_API_KEY=your_api_key_here
-```
-
-### 2. Start the container
+Then start it:
 
 ```bash
-cd StashProxy
 docker-compose up -d
 ```
 
-Docker will automatically pull the pre-built image from Docker Hub — no build step required.
-
 Verify it's running:
+
 ```bash
 curl http://localhost:5678/health
 # should return: OK
 ```
 
-### 3. Update StashSync plugin settings
+That's it — no build step required. Docker pulls the pre-built image from Docker Hub automatically.
 
-In Jellyfin → Dashboard → Plugins → StashSync → Settings, set the **Proxy URL** to:
+---
+
+## Connecting to Jellyfin
+
+In Jellyfin → **Dashboard → Plugins → StashSync → Settings**, set the **Proxy URL** to:
+
 ```
 http://<your-server-ip>:5678
 ```
 
-Re-run the sync task. The `.strm` files will now point to the proxy instead of Stash directly.
+Then re-run the StashSync task. The `.strm` files will be updated to point at the proxy.
 
 ---
 
@@ -83,14 +84,9 @@ Re-run the sync task. The `.strm` files will now point to the proxy instead of S
 1. Go to **Apps → Discover Apps → Custom App**
 2. Set the image to `lurking987/stashproxy:latest`
 3. Set the port mapping: `5678 → 5678`
-4. Set the volume mount: your stash-groups path → `/stash-groups` (read-only)
+4. Set the volume mount: your stash-groups path on the host → `/stash-groups` (read-only)
 5. Set environment variables as needed (see table below)
-
-Alternatively, run it via SSH:
-```bash
-cd /path/to/StashProxy
-docker-compose up -d
-```
+6. Deploy the app
 
 ---
 
@@ -122,7 +118,7 @@ The `group_id` matches the Stash Group ID, which is embedded in the folder name 
 
 ## Seeking
 
-Seeking works within the buffered portion of the video. As Jellyfin buffers more of the stream, the seekable range grows. Full random-access seeking is not supported since the stream is a live pipe — you cannot jump ahead of what has already been buffered.
+Seeking works within the buffered portion of the video. As Jellyfin buffers more of the stream, the seekable range grows. Full random-access seeking is not supported since the stream is a live pipe — you cannot jump ahead of what has already been buffered. The web browser client tends to buffer more aggressively than the desktop app, so seeking range will vary by client.
 
 ---
 
@@ -134,16 +130,20 @@ Seeking works within the buffered portion of the video. As Jellyfin buffers more
 - Re-run the StashSync sync task to regenerate chapter files
 
 **Video plays but stops after the first scene**
-- Check proxy logs: `docker logs <container-name> --tail 50`
+- Check proxy logs: `docker logs stashproxy --tail 50`
 - Confirm FFmpeg can reach the Stash stream URLs from inside the container
 - If Stash requires auth, make sure `STASH_API_KEY` is set
 
-**ffprobe / Jellyfin reports "invalid data"**
-- This usually means the container image is stale — pull the latest: `docker pull lurking987/stashproxy:latest` and redeploy
+**ffprobe / Jellyfin reports "invalid data" or FFmpeg exits with code 183**
+- This usually means the container image is stale — pull the latest:
+  ```bash
+  docker pull lurking987/stashproxy:latest
+  docker-compose up -d --force-recreate
+  ```
 
 **Container won't start**
 - Check logs: `docker-compose logs stashproxy`
-- Verify the stash-groups path exists and is readable
+- Verify the stash-groups path exists and is readable by Docker
 
 ---
 
