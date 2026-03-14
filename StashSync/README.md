@@ -46,7 +46,7 @@ Jellyfin Movie: "My Movie Title"
 
 ### Download the latest release
 
-1. Go to the [Releases](../../releases) page and download `Jellyfin.Plugin.StashSync.dll`
+1. Go to the [Releases](https://github.com/Lurking987/jellyfin-plugins/releases) page and download `Jellyfin.Plugin.StashSync.dll`
 2. On your Jellyfin server, create the folder:
    ```
    <jellyfin-config>/plugins/StashSync_1.0.0.0/
