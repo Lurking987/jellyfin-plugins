@@ -82,6 +82,7 @@ dotnet build -c Release
 | TMDB API Key | `abc123...` | Free v3 key from [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api). Used to fetch posters and backdrops automatically. |
 | STRM Output Path | `/config/stash-groups` | Where `.strm` files will be written. Jellyfin must have write access. |
 | Use Stream URLs | ✅ | Recommended. Stash serves video, Jellyfin handles the UI. |
+| StashProxy URL | `http://192.168.1.50:5678` | LAN IP of your StashProxy server |
 | Min Scene Count | `1` | Groups with fewer scenes than this are skipped. |
 
 ### 2. Add the output folder as a Jellyfin library
