@@ -105,7 +105,7 @@ http://<proxy-host>:5678/group/<group_id>/stream
 
 Example:
 ```
-http://192.168.0.38:5678/group/42/stream
+http://192.168.1.190:5678/group/42/stream
 ```
 
 The `group_id` matches the Stash Group ID, which is embedded in the folder name by StashSync (e.g. `My Movie (StashGroup-42)`).
