@@ -29,7 +29,7 @@ Jellyfin → GET /group/42/stream
 
 ## Quick Start (Docker Compose)
 
-No need to clone the repo. Just create a `docker-compose.yml` file anywhere on your server with the following content:
+Create a `docker-compose.yml` file anywhere on your server with the following content:
 
 ```yaml
 version: "3.8"
@@ -62,10 +62,6 @@ Verify it's running:
 curl http://localhost:5678/health
 # should return: OK
 ```
-
-That's it — no build step required. Docker pulls the pre-built image from Docker Hub automatically.
-
----
 
 ## Connecting to Jellyfin
 
