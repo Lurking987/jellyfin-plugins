@@ -24,17 +24,15 @@ Syncs [Stash App](https://stashapp.cc) Groups to Jellyfin as Movies. Each Group 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A companion proxy service for StashSync. Streams all scenes in a Stash Group as one continuous video using FFmpeg — no re-encoding, no extra disk space. Required for multi-scene chapter playback to work correctly in Jellyfin.
+A companion proxy service for StashSync. Segments all scenes in a Stash Group into a complete HLS VOD stream on first play, enabling full random-access seeking on all Jellyfin clients. No re-encoding — FFmpeg stream-copies each scene. Segments are cached and cleaned up automatically.
 
 **[→ View StashProxy README](./StashProxy/README.md)**
 
 ---
 
-## Installation
+## Quick Setup
 
-### StashSync Plugin
-
-Each plugin is installed manually as a DLL:
+### 1. Install the StashSync Plugin
 
 1. Download the DLL from the [Releases](../../releases) page
 2. Create a folder in your Jellyfin plugins directory named `StashSync_1.0.0.0`
@@ -42,18 +40,45 @@ Each plugin is installed manually as a DLL:
 4. Restart Jellyfin
 5. Confirm it loaded under **Dashboard → Plugins → My Plugins**
 
-See the [StashSync README](./StashSync/README.md) for full setup instructions.
+### 2. Deploy StashProxy
 
-### StashProxy
-
-StashProxy runs as a Docker container alongside Jellyfin:
+Create a `docker-compose.yml` with your stash-groups path and start it:
 
 ```bash
 cd StashProxy
 docker-compose up -d
 ```
 
-See the [StashProxy README](./StashProxy/README.md) for full setup instructions including TrueNAS Scale.
+### 3. Configure StashSync
+
+In Jellyfin → **Dashboard → Plugins → StashSync → Settings**:
+- Set your Stash URL, API key (if needed), and TMDB API key
+- Set the STRM Output Path to a folder Jellyfin can read
+- Set the Proxy URL to `http://<your-server-ip>:5678`
+- Run the sync task
+
+### 4. Add the library
+
+Add the STRM Output Path as a **Movies** library in Jellyfin with TheMovieDB enabled.
+
+See the individual READMEs for full setup instructions and TrueNAS Scale specifics.
+
+---
+
+## How It All Fits Together
+
+```
+Stash App
+  └── Groups (movies) + Scenes (chapters)
+         ↓ StashSync plugin syncs
+Jellyfin Library
+  └── .strm files → http://<proxy>/group/<id>/playlist.m3u8
+         ↓ on play
+StashProxy
+  └── Segments scenes via FFmpeg → serves HLS VOD playlist
+         ↓
+Jellyfin plays with full seeking, chapters, and TMDB metadata
+```
 
 ---
 

@@ -83,15 +83,15 @@ public class StrmWriter
         string strmTarget;
         if (!string.IsNullOrWhiteSpace(config.ProxyUrl))
         {
-            // StashProxy streams all scenes concatenated via FFmpeg
-            strmTarget = $"{config.ProxyUrl.TrimEnd('/')}/group/{group.Id}/stream";
+            // StashProxy serves a complete HLS VOD playlist for full seeking
+            strmTarget = $"{config.ProxyUrl.TrimEnd('/')}/group/{group.Id}/playlist.m3u8";
         }
         else
         {
             // Fallback: direct first-scene stream URL (single scene only)
             strmTarget = streamTargets[0].Url;
         }
-        await File.WriteAllTextAsync(strmPath, strmTarget, Encoding.UTF8, ct).ConfigureAwait(false);
+        await File.WriteAllTextAsync(strmPath, strmTarget, new System.Text.UTF8Encoding(false), ct).ConfigureAwait(false);
 
         // 3. Fetch TMDB images if we have a TMDB ID and API key
         var tmdbId = group.Urls.Select(ExtractTmdbId).FirstOrDefault(id => id != null);

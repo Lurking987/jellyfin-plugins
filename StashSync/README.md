@@ -27,7 +27,7 @@ Jellyfin Movie: "My Movie Title"
 ```
 
 > **Why `.strm` files?**
-> Jellyfin requires a physical file to anchor each library entry. A `.strm` is a single-line text file containing a stream URL — Jellyfin opens it and streams directly from Stash, while handling all the library UI itself.
+> Jellyfin requires a physical file to anchor each library entry. A `.strm` is a single-line text file containing a URL — Jellyfin opens it and streams from that URL. When StashProxy is configured, the URL points to the proxy's HLS playlist endpoint (`/group/<id>/playlist.m3u8`), enabling full seeking across all scenes. Without StashProxy, it falls back to a direct Stash stream URL for the first scene only.
 
 ---
 
@@ -46,7 +46,7 @@ Jellyfin Movie: "My Movie Title"
 
 ### Download the latest release
 
-1. Go to the [Releases](https://github.com/Lurking987/jellyfin-plugins/releases) page and download `Jellyfin.Plugin.StashSync.dll`
+1. Go to the [Releases](../../releases) page and download `Jellyfin.Plugin.StashSync.dll`
 2. On your Jellyfin server, create the folder:
    ```
    <jellyfin-config>/plugins/StashSync_1.0.0.0/
@@ -164,8 +164,10 @@ The sync task updates existing group folders in place and removes folders for Gr
 - Check **Library Settings → Metadata readers** — StashSync should be listed and checked
 
 **Video won't play**
-- The `.strm` contains a URL like `http://<stash-ip>:9999/scene/101/stream`
-- Test that URL directly in a browser — if it loads, Jellyfin should be able to play it
+- When StashProxy is configured, the `.strm` contains a URL like `http://<proxy-ip>:5678/group/42/playlist.m3u8`
+- Test the proxy health: `curl http://<proxy-ip>:5678/health` — should return `OK`
+- Make sure StashProxy is running and the Proxy URL is set correctly in plugin settings
+- Re-run the sync task after changing the Proxy URL to update all `.strm` files
 - If Stash has authentication enabled, make sure the Stash API Key is set in plugin settings
 
 **Permission errors on TrueNAS after sync**
