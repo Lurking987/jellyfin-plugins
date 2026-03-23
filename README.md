@@ -24,7 +24,7 @@ Syncs [Stash App](https://stashapp.cc) Groups to Jellyfin as Movies. Each Group 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-A companion proxy service for StashSync. Segments all scenes in a Stash Group into a complete HLS VOD stream on first play, enabling full random-access seeking on all Jellyfin clients. No re-encoding — FFmpeg stream-copies each scene. Segments are cached and cleaned up automatically.
+A companion proxy service for StashSync. Streams all scenes in a Stash Group as one continuous video using FFmpeg — no re-encoding, no extra disk space. Required for multi-scene playback to work correctly in Jellyfin.
 
 **[→ View StashProxy README](./StashProxy/README.md)**
 
@@ -72,13 +72,23 @@ Stash App
   └── Groups (movies) + Scenes (chapters)
          ↓ StashSync plugin syncs
 Jellyfin Library
-  └── .strm files → http://<proxy>/group/<id>/playlist.m3u8
+  └── .strm files → http://<proxy>/group/<id>/stream
          ↓ on play
 StashProxy
-  └── Segments scenes via FFmpeg → serves HLS VOD playlist
+  └── Remuxes scenes via FFmpeg → pipes continuous MPEG-TS stream
          ↓
-Jellyfin plays with full seeking, chapters, and TMDB metadata
+Jellyfin plays with chapters and TMDB metadata
 ```
+
+---
+
+## Client Compatibility
+
+| Client | Status |
+|---|---|
+| Jellyfin Desktop | ✅ Direct play — full 4K quality |
+| Jellyfin Web (browser) | ⚠️ Transcoded — browsers can't direct play MPEG-TS |
+| Jellyfin Android TV | ❌ Not currently supported |
 
 ---
 

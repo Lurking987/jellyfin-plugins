@@ -83,8 +83,8 @@ public class StrmWriter
         string strmTarget;
         if (!string.IsNullOrWhiteSpace(config.ProxyUrl))
         {
-            // StashProxy serves a complete HLS VOD playlist for full seeking
-            strmTarget = $"{config.ProxyUrl.TrimEnd('/')}/group/{group.Id}/playlist.m3u8";
+            // StashProxy streams all scenes as continuous MPEG-TS via FFmpeg
+            strmTarget = $"{config.ProxyUrl.TrimEnd('/')}/group/{group.Id}/stream";
         }
         else
         {

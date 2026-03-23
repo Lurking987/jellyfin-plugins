@@ -14,5 +14,3 @@ services:
       - STASH_GROUPS_PATH=/stash-groups
       - STASH_API_KEY=        # Set this if Stash requires authentication
       - PROXY_PORT=5678
-      - SEGMENT_DURATION=6   # seconds per fMP4 segment
-      - SEGMENT_TTL=3600     # seconds before unused segments are cleaned up

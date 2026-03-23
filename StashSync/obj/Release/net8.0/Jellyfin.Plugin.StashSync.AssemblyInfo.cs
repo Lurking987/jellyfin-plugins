@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Jellyfin.Plugin.StashSync")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a5ac6b307733ca3b3e8a9cb781deb5c511bf197")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4639f645c3574b34b5b186b2f9da02d9c5dcb619")]
 [assembly: System.Reflection.AssemblyProductAttribute("Jellyfin.Plugin.StashSync")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Jellyfin.Plugin.StashSync")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

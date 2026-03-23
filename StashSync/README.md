@@ -27,7 +27,7 @@ Jellyfin Movie: "My Movie Title"
 ```
 
 > **Why `.strm` files?**
-> Jellyfin requires a physical file to anchor each library entry. A `.strm` is a single-line text file containing a URL — Jellyfin opens it and streams from that URL. When StashProxy is configured, the URL points to the proxy's HLS playlist endpoint (`/group/<id>/playlist.m3u8`), enabling full seeking across all scenes. Without StashProxy, it falls back to a direct Stash stream URL for the first scene only.
+> Jellyfin requires a physical file to anchor each library entry. A `.strm` is a single-line text file containing a URL — Jellyfin opens it and streams from that URL. When StashProxy is configured, the URL points to the proxy (`/group/<id>/stream`), which pipes all scenes together as one continuous video. Without StashProxy, it falls back to a direct Stash stream URL for the first scene only.
 
 ---
 
@@ -164,7 +164,7 @@ The sync task updates existing group folders in place and removes folders for Gr
 - Check **Library Settings → Metadata readers** — StashSync should be listed and checked
 
 **Video won't play**
-- When StashProxy is configured, the `.strm` contains a URL like `http://<proxy-ip>:5678/group/42/playlist.m3u8`
+- When StashProxy is configured, the `.strm` contains a URL like `http://<proxy-ip>:5678/group/42/stream`
 - Test the proxy health: `curl http://<proxy-ip>:5678/health` — should return `OK`
 - Make sure StashProxy is running and the Proxy URL is set correctly in plugin settings
 - Re-run the sync task after changing the Proxy URL to update all `.strm` files
