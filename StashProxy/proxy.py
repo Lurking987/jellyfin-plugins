@@ -113,7 +113,7 @@ def _segmentation_worker(group_id: str, chapters: list[dict]):
     os.makedirs(out_dir, exist_ok=True)
 
     segment_index = 0
-    all_segments = []
+    all_segments = []   # list of (init_filename, [(seg_filename, duration), ...])
 
     print(f"[StashProxy] Starting segmentation for group {group_id} "
           f"({len(chapters)} scenes)", flush=True)
@@ -124,6 +124,7 @@ def _segmentation_worker(group_id: str, chapters: list[dict]):
         stream_url = add_api_key(chapter["stream_url"])
         scene_playlist = os.path.join(out_dir, f"scene_{i}.m3u8")
 
+        init_filename = f"init_{i:04d}.mp4"
         cmd = [
             FFMPEG_PATH, "-y",
             "-i", stream_url,
@@ -133,8 +134,9 @@ def _segmentation_worker(group_id: str, chapters: list[dict]):
             "-hls_time", str(SEGMENT_DURATION),
             "-hls_list_size", "0",
             "-hls_flags", "independent_segments",
-            "-hls_segment_type", "mpegts",
-            "-hls_segment_filename", os.path.join(out_dir, f"seg_%04d.ts"),
+            "-hls_segment_type", "fmp4",
+            "-hls_fmp4_init_filename", init_filename,
+            "-hls_segment_filename", os.path.join(out_dir, f"seg_%04d.m4s"),
             "-start_number", str(segment_index),
             scene_playlist,
         ]
@@ -161,8 +163,8 @@ def _segmentation_worker(group_id: str, chapters: list[dict]):
                 _jobs[group_id]["state"] = "error"
             return
 
-        scene_segs = _parse_scene_playlist(scene_playlist)
-        all_segments.extend(scene_segs)
+        init_file, scene_segs = _parse_scene_playlist(scene_playlist)
+        all_segments.append((init_file, scene_segs))
         segment_index += len(scene_segs)
 
         print(f"[StashProxy] Scene {i+1} done — "
@@ -178,23 +180,32 @@ def _segmentation_worker(group_id: str, chapters: list[dict]):
           f"{len(all_segments)} total segments", flush=True)
 
 
-def _parse_scene_playlist(playlist_path: str) -> list[tuple[str, float]]:
+def _parse_scene_playlist(playlist_path: str) -> tuple[str | None, list[tuple[str, float]]]:
+    """
+    Parse an FFmpeg-generated fMP4 m3u8.
+    Returns (init_filename, [(segment_filename, duration), ...])
+    """
     segments = []
+    init_file = None
     if not os.path.exists(playlist_path):
-        return segments
+        return init_file, segments
     with open(playlist_path) as f:
         lines = f.readlines()
     i = 0
     while i < len(lines):
         line = lines[i].strip()
-        if line.startswith("#EXTINF:"):
+        if line.startswith("#EXT-X-MAP:"):
+            # e.g. #EXT-X-MAP:URI="init_0000.mp4"
+            uri = line.split('URI="')[1].rstrip('"')
+            init_file = os.path.basename(uri)
+        elif line.startswith("#EXTINF:"):
             duration = float(line.split(":")[1].rstrip(","))
             i += 1
             if i < len(lines):
                 filename = os.path.basename(lines[i].strip())
                 segments.append((filename, duration))
         i += 1
-    return segments
+    return init_file, segments
 
 
 def _probe_segment(seg_path: str) -> dict:
@@ -233,30 +244,35 @@ def _probe_segment(seg_path: str) -> dict:
         return {"bandwidth": 15000000, "resolution": "3840x2160", "codecs": "avc1.640034,mp4a.40.2"}
 
 
-def _write_vod_playlist(group_id: str, segments: list[tuple[str, float]]):
+def _write_vod_playlist(group_id: str, scenes: list[tuple[str | None, list[tuple[str, float]]]]):
     """
-    Write a two-level HLS structure:
+    Write a two-level fMP4 HLS structure:
       playlist.m3u8 — master playlist with bandwidth/resolution/codec hints
-      media.m3u8    — media playlist with all segments
+      media.m3u8    — media playlist with EXT-X-MAP init references per scene
     """
     out_dir = segment_dir_for(group_id)
     media_path = os.path.join(out_dir, "media.m3u8")
     master_path = playlist_path_for(group_id)
 
-    max_duration = max((d for _, d in segments), default=SEGMENT_DURATION)
+    # Flatten for max duration calculation
+    all_segs = [(f, d) for _, scene_segs in scenes for f, d in scene_segs]
+    max_duration = max((d for _, d in all_segs), default=SEGMENT_DURATION)
     target_duration = int(max_duration) + 1
 
-    # Write media playlist
+    # Write media playlist — fMP4 requires #EXT-X-MAP before each group of segments
     media_lines = [
         "#EXTM3U",
-        "#EXT-X-VERSION:3",
+        "#EXT-X-VERSION:6",          # version 6 required for fMP4
         f"#EXT-X-TARGETDURATION:{target_duration}",
         "#EXT-X-PLAYLIST-TYPE:VOD",
         "#EXT-X-INDEPENDENT-SEGMENTS",
     ]
-    for filename, duration in segments:
-        media_lines.append(f"#EXTINF:{duration:.6f},")
-        media_lines.append(f"/group/{group_id}/segments/{filename}")
+    for init_file, scene_segs in scenes:
+        if init_file:
+            media_lines.append(f"#EXT-X-MAP:URI=\"/group/{group_id}/segments/{init_file}\"")
+        for filename, duration in scene_segs:
+            media_lines.append(f"#EXTINF:{duration:.6f},")
+            media_lines.append(f"/group/{group_id}/segments/{filename}")
     media_lines.append("#EXT-X-ENDLIST")
 
     tmp_media = media_path + ".tmp"
@@ -264,15 +280,15 @@ def _write_vod_playlist(group_id: str, segments: list[tuple[str, float]]):
         f.write("\n".join(media_lines) + "\n")
     os.replace(tmp_media, media_path)
 
-    # Probe first segment for real stream info
-    first_seg = os.path.join(out_dir, segments[0][0]) if segments else None
-    info = _probe_segment(first_seg) if first_seg and os.path.exists(first_seg) else \
+    # Probe the first init file for real stream info
+    first_init = os.path.join(out_dir, scenes[0][0]) if scenes and scenes[0][0] else None
+    info = _probe_segment(first_init) if first_init and os.path.exists(first_init) else \
         {"bandwidth": 15000000, "resolution": "3840x2160", "codecs": "avc1.640034,mp4a.40.2"}
 
     # Write master playlist
     master_lines = [
         "#EXTM3U",
-        "#EXT-X-VERSION:3",
+        "#EXT-X-VERSION:6",
         "#EXT-X-INDEPENDENT-SEGMENTS",
         f"#EXT-X-STREAM-INF:BANDWIDTH={info['bandwidth']},"
         f"RESOLUTION={info['resolution']},"
@@ -440,8 +456,16 @@ class ProxyHandler(BaseHTTPRequestHandler):
             with open(seg_path, "rb") as f:
                 data = f.read()
 
+            # Determine correct content type
+            if filename.endswith(".mp4"):
+                content_type = "video/mp4"        # fMP4 init segment
+            elif filename.endswith(".m4s"):
+                content_type = "video/iso.segment" # fMP4 media segment
+            else:
+                content_type = "video/mp2t"        # legacy MPEG-TS fallback
+
             self.send_response(200)
-            self.send_header("Content-Type", "video/mp2t")
+            self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "max-age=3600")
             self.end_headers()

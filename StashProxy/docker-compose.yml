@@ -8,14 +8,11 @@ services:
     ports:
       - "5678:5678"
     volumes:
-      # Mount your stash-groups folder (read-only — proxy only reads chapter-metadata.xml)
+      # Change this to the path of your stash-groups folder on the host
       - /your/path/to/stash-groups:/stash-groups:ro
-      # Segment cache — HLS .ts files are written here (needs write access, ~10-15GB per movie)
-      - /your/path/to/stashproxy-cache:/tmp/stashproxy-segments
     environment:
       - STASH_GROUPS_PATH=/stash-groups
       - STASH_API_KEY=        # Set this if Stash requires authentication
       - PROXY_PORT=5678
-      - SEGMENT_DIR=/tmp/stashproxy-segments
-      - SEGMENT_DURATION=6   # seconds per HLS segment
+      - SEGMENT_DURATION=6   # seconds per fMP4 segment
       - SEGMENT_TTL=3600     # seconds before unused segments are cleaned up
