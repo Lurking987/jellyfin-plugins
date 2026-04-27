@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'   # triggers on tags like v1.0.0
+      - 'v*'
 
 jobs:
   build:
@@ -23,7 +23,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p release
-          cd release && zip ../StashMoviesSync.zip Jellyfin.Plugin.StashMovies.dll
+          cp StashMovies/bin/Release/net9.0/Jellyfin.Plugin.StashMovies.dll release/
           cd release && zip ../StashMoviesSync.zip Jellyfin.Plugin.StashMovies.dll
 
       - name: Get checksum
