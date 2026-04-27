@@ -18,6 +18,16 @@
                     <div class="fieldDescription">Groups with fewer scenes than this number will be skipped. Set to 0 to include all groups.</div>
                 </div>
                 <div class="inputContainer">
+                    <label class="inputLabel" for="StashPathPrefix">Stash Path Prefix</label>
+                    <input is="emby-input" type="text" id="StashPathPrefix" name="StashPathPrefix" />
+                    <div class="fieldDescription">The path prefix as Stash sees your files (e.g. <code>/data/Studios</code>). Leave blank if Stash and Jellyfin share the same paths.</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel" for="JellyfinPathPrefix">Jellyfin Path Prefix</label>
+                    <input is="emby-input" type="text" id="JellyfinPathPrefix" name="JellyfinPathPrefix" />
+                    <div class="fieldDescription">The same location as Jellyfin sees it (e.g. <code>/mnt/stsh</code>). Leave blank if Stash and Jellyfin share the same paths.</div>
+                </div>
+                <div class="inputContainer">
                     <label class="inputLabel">Sync Mode</label>
                     <div class="fieldDescription" style="margin-bottom:8px;">
                         Controls how the individual scene files inside each movie folder are named.<br/><br/>
@@ -49,6 +59,8 @@
                 $('#StashApiUrl', page).val(config.StashApiUrl || "");
                 $('#StashMoviesPath', page).val(config.StashMoviesPath || "");
                 $('#MinSceneCount', page).val(config.MinSceneCount ?? 0);
+                $('#StashPathPrefix', page).val(config.StashPathPrefix || "");
+                $('#JellyfinPathPrefix', page).val(config.JellyfinPathPrefix || "");
 
                 var mode = config.SyncMode || "Parts";
                 $('input[name="SyncMode"][value="' + mode + '"]', page).prop('checked', true);
@@ -61,6 +73,8 @@
                 config.StashApiUrl = $('#StashApiUrl', page).val();
                 config.StashMoviesPath = $('#StashMoviesPath', page).val();
                 config.MinSceneCount = parseInt($('#MinSceneCount', page).val(), 10) || 0;
+                config.StashPathPrefix = $('#StashPathPrefix', page).val();
+                config.JellyfinPathPrefix = $('#JellyfinPathPrefix', page).val();
                 config.SyncMode = $('input[name="SyncMode"]:checked', page).val() || "Parts";
                 ApiClient.updatePluginConfiguration(StashSyncConfig.pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
             });
