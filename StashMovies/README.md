@@ -6,7 +6,7 @@ A Jellyfin plugin that automatically syncs movie groups from [Stash](https://sta
 
 ## How It Works
 
-Stash organises related scenes into **Groups**. This plugin treats each Group as a single Movie in Jellyfin:
+Stash organizes related scenes into **Groups**. This plugin treats each Group as a single Movie in Jellyfin:
 
 1. Queries your Stash instance for all Groups and their associated scenes via the GraphQL API.
 2. Creates a dedicated folder for each Group inside your configured library path.
@@ -78,7 +78,7 @@ Navigate to **Dashboard → Plugins → Stash Movies Sync → Settings**.
 
 Both modes create **one folder and one `movie.nfo` per Group**. The only difference is how the individual scene symlinks are named.
 
-| Mode | File naming | Jellyfin behaviour |
+| Mode | File naming | Jellyfin behavior |
 |---|---|---|
 | **Parts** | `Movie Name - pt1.mkv`, `Movie Name - pt2.mkv` … | Jellyfin recognises the `pt#` suffix and plays all parts back-to-back automatically |
 | **Scenes** | `Movie Name - Scene Title.mkv` … | Jellyfin lists each scene as an individually selectable section; playback is not automatic |
