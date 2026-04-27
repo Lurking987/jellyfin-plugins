@@ -18,6 +18,18 @@ Syncs [Stash App](https://stashapp.cc) Groups to Jellyfin as Movies. Each Group 
 
 ---
 
+### [StashMovies](./Jellyfin.Plugin.StashMovies)
+
+![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.0+-blue?logo=jellyfin)
+![.NET](https://img.shields.io/badge/.NET-9.0-purple?logo=dotnet)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+Syncs [Stash App](https://stashapp.cc) Groups to Jellyfin as Movies using **symbolic links** — no proxy, no re-encoding, no extra disk space. Each Group becomes a single Movie entry, with its scenes linked as either auto-playing parts or individually selectable sections depending on your preference.
+
+**[→ View plugin README](./StashMovies/README.md)**
+
+---
+
 ### [StashProxy](./StashProxy)
 
 ![Docker](https://img.shields.io/badge/Docker-required-blue?logo=docker)
@@ -32,7 +44,7 @@ A companion proxy service for StashSync. Streams all scenes in a Stash Group as 
 
 ## Quick Setup
 
-### 1. Install the StashSync Plugin
+### StashSync (legacy, proxy-based)
 
 1. Download the DLL from the [Releases](../../releases) page
 2. Create a folder in your Jellyfin plugins directory named `StashSync_1.0.0.0`
@@ -40,55 +52,31 @@ A companion proxy service for StashSync. Streams all scenes in a Stash Group as 
 4. Restart Jellyfin
 5. Confirm it loaded under **Dashboard → Plugins → My Plugins**
 
-### 2. Deploy StashProxy
-
-Create a `docker-compose.yml` with your stash-groups path and start it:
-
-```bash
-cd StashProxy
-docker-compose up -d
-```
-
-### 3. Configure StashSync
-
-In Jellyfin → **Dashboard → Plugins → StashSync → Settings**:
-- Set your Stash URL, API key (if needed), and TMDB API key
-- Set the STRM Output Path to a folder Jellyfin can read
-- Set the Proxy URL to `http://<your-server-ip>:5678`
-- Run the sync task
-
-### 4. Add the library
-
-Add the STRM Output Path as a **Movies** library in Jellyfin with TheMovieDB enabled.
-
-See the individual READMEs for full setup instructions and TrueNAS Scale specifics.
+See [StashSync README](./StashSync/README.md) and [StashProxy README](./StashProxy/README.md) for full setup.
 
 ---
 
-## How It All Fits Together
+### StashMovies (symlink-based, no proxy required)
 
-```
-Stash App
-  └── Groups (movies) + Scenes (chapters)
-         ↓ StashSync plugin syncs
-Jellyfin Library
-  └── .strm files → http://<proxy>/group/<id>/stream
-         ↓ on play
-StashProxy
-  └── Remuxes scenes via FFmpeg → pipes continuous MPEG-TS stream
-         ↓
-Jellyfin plays with chapters and TMDB metadata
-```
+1. Download `StashMoviesSync.zip` from the [Releases](../../releases) page and extract it.
+2. Copy `Jellyfin.Plugin.StashMovies.dll` to your Jellyfin plugins directory (e.g. `/config/plugins/StashMovies/`).
+3. Restart Jellyfin.
+4. Go to **Dashboard → Plugins → Stash Movies Sync → Settings** and configure your Stash URL and library path.
+5. Run the **Sync Stash Movies** scheduled task.
+
+See [StashMovies README](./StashMovies/README.md) for full setup including path translation and sync mode options.
 
 ---
 
-## Client Compatibility
+## StashSync vs StashMovies
 
-| Client | Status |
-|---|---|
-| Jellyfin Desktop | ✅ Direct play — full 4K quality |
-| Jellyfin Web (browser) | ⚠️ Transcoded — browsers can't direct play MPEG-TS |
-| Jellyfin Android TV | ❌ Not currently supported |
+| | StashSync | StashMovies |
+|---|---|---|
+| Approach | `.strm` files + HTTP proxy | Symbolic links directly to files |
+| Requires StashProxy | ✅ Yes | ❌ No |
+| Direct play (4K) | Desktop only | ✅ All clients |
+| TMDB metadata | ✅ Automatic | Manual / NFO only |
+| Setup complexity | Higher | Lower |
 
 ---
 
