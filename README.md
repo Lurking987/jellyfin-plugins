@@ -58,6 +58,18 @@ See [StashSync README](./StashSync/README.md) and [StashProxy README](./StashPro
 
 ### StashMovies (symlink-based, no proxy required)
 
+**Option A — Via Jellyfin Plugin Repository (recommended)**
+
+1. In Jellyfin go to **Dashboard → Plugins → Repositories → +**
+2. Add this URL:
+   ```
+   https://lurking987.github.io/jellyfin-plugins/manifest.json
+   ```
+3. Go to **Catalogue**, find **Stash Movies Sync**, and install.
+4. Restart Jellyfin and configure the plugin under **Dashboard → Plugins → Stash Movies Sync → Settings**.
+
+**Option B — Manual**
+
 1. Download `StashMoviesSync.zip` from the [Releases](../../releases) page and extract it.
 2. Copy `Jellyfin.Plugin.StashMovies.dll` to your Jellyfin plugins directory (e.g. `/config/plugins/StashMovies/`).
 3. Restart Jellyfin.
