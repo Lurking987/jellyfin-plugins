@@ -87,14 +87,14 @@ Both modes create **one folder and one `movie.nfo` per Group**. The only differe
 
 ## Path Translation
 
-If your Stash and Jellyfin instances run in separate containers or mount paths differently, the plugin includes a `TranslatePath` helper in `ScheduledTask.cs` that rewrites the beginning of each file path.
+If your Stash and Jellyfin instances run in separate containers or mount paths differently, you can configure path translation directly in the plugin settings.
 
-Edit these two lines to match your setup:
+| Setting | Example | Description |
+|---|---|---|
+| **Stash Path Prefix** | `/data/Studios` | The path prefix as Stash sees the files |
+| **Jellyfin Path Prefix** | `/mnt/stsh` | The same location as Jellyfin sees it |
 
-```csharp
-string stashRoot    = "/data/Studios";   // path as Stash sees it
-string jellyfinRoot = "/mnt/stsh";       // same location as Jellyfin sees it
-```
+Leave both fields blank if Stash and Jellyfin share identical mount paths — no translation will be applied.
 
 ---
 

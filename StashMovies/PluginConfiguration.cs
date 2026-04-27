@@ -18,4 +18,15 @@ public class PluginConfiguration : BasePluginConfiguration
     /// Groups with fewer scenes than this will be skipped entirely. 0 = no minimum.
     /// </summary>
     public int MinSceneCount { get; set; } = 0;
+
+    /// <summary>
+    /// The path prefix as Stash sees the files (e.g. /data/Studios).
+    /// Leave both fields blank if Stash and Jellyfin share the same mount paths.
+    /// </summary>
+    public string StashPathPrefix { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The equivalent path prefix as Jellyfin sees the same location (e.g. /mnt/stsh).
+    /// </summary>
+    public string JellyfinPathPrefix { get; set; } = string.Empty;
 }

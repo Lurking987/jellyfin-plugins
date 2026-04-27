@@ -187,13 +187,15 @@ public class StashSyncTask : IScheduledTask
 
     private string TranslatePath(string originalPath)
     {
-        string stashRoot = "/data/Studios";
-        string jellyfinRoot = "/mnt/stsh";
+        var config = Plugin.Instance!.Configuration;
+
+        if (string.IsNullOrEmpty(config.StashPathPrefix) || string.IsNullOrEmpty(config.JellyfinPathPrefix))
+            return originalPath;
 
         if (!string.IsNullOrEmpty(originalPath) &&
-            originalPath.StartsWith(stashRoot, StringComparison.CurrentCultureIgnoreCase))
+            originalPath.StartsWith(config.StashPathPrefix, StringComparison.CurrentCultureIgnoreCase))
         {
-            return jellyfinRoot + originalPath.Substring(stashRoot.Length);
+            return config.JellyfinPathPrefix + originalPath.Substring(config.StashPathPrefix.Length);
         }
 
         return originalPath;
