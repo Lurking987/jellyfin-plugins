@@ -56,7 +56,7 @@ Stash organises related scenes into **Groups**. This plugin treats each Group as
 ```bash
 git clone https://github.com/Lurking987/jellyfin-plugins.git
 cd jellyfin-plugins
-dotnet build StashMovies/Jellyfin_Plugin_StashMovies.csproj --configuration Release
+dotnet build StashMovies/Jellyfin.Plugin.StashMovies.csproj --configuration Release
 ```
 
 Copy the output `.dll` from `bin/Release/net9.0/` to your Jellyfin plugins directory and restart Jellyfin.
