@@ -1,0 +1,70 @@
+<div id="StashSyncConfigPage" data-role="page" class="page type-interior pluginPage" data-require="emby-input,emby-button,emby-select">
+    <div data-role="content">
+        <div class="content-primary">
+            <form id="StashSyncConfigForm">
+                <div class="inputContainer">
+                    <label class="inputLabel" for="StashApiUrl">Stash GraphQL URL</label>
+                    <input is="emby-input" type="url" id="StashApiUrl" name="StashApiUrl" label="Stash API URL" />
+                    <div class="fieldDescription">Example: http://192.168.1.x:9999/graphql</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel" for="StashMoviesPath">Stash Movies Library Path</label>
+                    <input is="emby-input" type="text" id="StashMoviesPath" name="StashMoviesPath" label="Library Path" />
+                    <div class="fieldDescription">The full path where symlinks will be created.</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel" for="MinSceneCount">Minimum Scene Count</label>
+                    <input is="emby-input" type="number" id="MinSceneCount" name="MinSceneCount" min="0" step="1" />
+                    <div class="fieldDescription">Groups with fewer scenes than this number will be skipped. Set to 0 to include all groups.</div>
+                </div>
+                <div class="inputContainer">
+                    <label class="inputLabel">Sync Mode</label>
+                    <div class="fieldDescription" style="margin-bottom:8px;">
+                        Controls how the individual scene files inside each movie folder are named.<br/><br/>
+                        <strong>Parts</strong> &mdash; Files are named <em>Movie Name - pt1.ext</em>, <em>pt2.ext</em>&hellip; Jellyfin recognises these as multi-part files and plays them back-to-back automatically.<br/>
+                        <strong>Scenes</strong> &mdash; Files are named using the scene&rsquo;s own title, e.g. <em>Movie Name - Scene Title.ext</em>. Jellyfin lists them as individually selectable sections; playback is not automatic.
+                    </div>
+                    <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;cursor:pointer;">
+                        <input type="radio" id="SyncModeParts" name="SyncMode" value="Parts" />
+                        Parts (merge scenes into one movie)
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                        <input type="radio" id="SyncModeScenes" name="SyncMode" value="Scenes" />
+                        Scenes (each scene as its own movie)
+                    </label>
+                </div>
+                <button is="emby-button" type="submit" class="raised button-confirm block">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        var StashSyncConfig = {
+            pluginId: "A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D" // MUST match your Plugin Id GUID
+        };
+
+        $('#StashSyncConfigPage').on('pageshow', function () {
+            var page = this;
+            ApiClient.getPluginConfiguration(StashSyncConfig.pluginId).then(function (config) {
+                $('#StashApiUrl', page).val(config.StashApiUrl || "");
+                $('#StashMoviesPath', page).val(config.StashMoviesPath || "");
+                $('#MinSceneCount', page).val(config.MinSceneCount ?? 0);
+
+                var mode = config.SyncMode || "Parts";
+                $('input[name="SyncMode"][value="' + mode + '"]', page).prop('checked', true);
+            });
+        });
+
+        $('#StashSyncConfigForm').on('submit', function () {
+            var page = $(this).parents('#StashSyncConfigPage')[0];
+            ApiClient.getPluginConfiguration(StashSyncConfig.pluginId).then(function (config) {
+                config.StashApiUrl = $('#StashApiUrl', page).val();
+                config.StashMoviesPath = $('#StashMoviesPath', page).val();
+                config.MinSceneCount = parseInt($('#MinSceneCount', page).val(), 10) || 0;
+                config.SyncMode = $('input[name="SyncMode"]:checked', page).val() || "Parts";
+                ApiClient.updatePluginConfiguration(StashSyncConfig.pluginId, config).then(Dashboard.processPluginConfigurationUpdateResult);
+            });
+            return false;
+        });
+    </script>
+</div>
