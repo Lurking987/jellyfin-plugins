@@ -23,7 +23,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p release
-          cp StashMovies/bin/Release/net9.0/Jellyfin.Plugin.StashMovies.dll release/
+          cd release && zip ../StashMoviesSync.zip Jellyfin.Plugin.StashMovies.dll
           cd release && zip ../StashMoviesSync.zip Jellyfin.Plugin.StashMovies.dll
 
       - name: Get checksum
