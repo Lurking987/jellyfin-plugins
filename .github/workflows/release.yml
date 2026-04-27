@@ -1,0 +1,43 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'   # triggers on tags like v1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build
+        run: dotnet build StashMovies/Jellyfin_Plugin_StashMovies.csproj --configuration Release
+
+      - name: Package
+        run: |
+          mkdir -p release
+          cp StashMovies/bin/Release/net9.0/Jellyfin.Plugin.StashMovies.dll release/
+          cd release && zip ../StashMoviesSync.zip Jellyfin.Plugin.StashMovies.dll
+
+      - name: Get checksum
+        id: checksum
+        run: echo "md5=$(md5sum StashMoviesSync.zip | awk '{print $1}')" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: StashMoviesSync.zip
+          body: |
+            ## Installation
+            1. Download `StashMoviesSync.zip` and extract the `.dll`.
+            2. Copy `Jellyfin.Plugin.StashMovies.dll` to your Jellyfin plugins directory (e.g. `/config/plugins/StashMovies/`).
+            3. Restart Jellyfin.
+
+            **MD5:** ${{ steps.checksum.outputs.md5 }}
