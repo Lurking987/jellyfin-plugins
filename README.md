@@ -18,7 +18,7 @@ Syncs [Stash App](https://stashapp.cc) Groups to Jellyfin as Movies. Each Group 
 
 ---
 
-### [StashMovies](./Jellyfin.Plugin.StashMovies)
+### ### [StashMovies](./StashMovies)
 
 ![Jellyfin](https://img.shields.io/badge/Jellyfin-10.11.0+-blue?logo=jellyfin)
 ![.NET](https://img.shields.io/badge/.NET-9.0-purple?logo=dotnet)
