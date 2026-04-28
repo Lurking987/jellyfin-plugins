@@ -38,7 +38,7 @@ Stash organizes related scenes into **Groups**. This plugin treats each Group as
 
 ### Manual
 
-1. Download the latest `StashMoviesSync.zip` from the [Releases](../../releases) page and extract it.
+1. Download the latest `StashMoviesSync.zip` from the [Releases](https://github.com/Lurking987/jellyfin-plugins/releases) page and extract it.
 2. Copy `Jellyfin.Plugin.StashMovies.dll` into your Jellyfin plugins directory (e.g. `/config/plugins/StashMovies/`).
 3. Restart Jellyfin.
 
@@ -152,4 +152,4 @@ Pull requests are welcome. Please open an issue first to discuss any significant
 
 ## License
 
-This project is provided as-is with no warranty. See [LICENSE](LICENSE) for details.
+This project is provided as-is with no warranty. See [LICENSE](../LICENSE) for details.
